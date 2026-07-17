@@ -188,3 +188,30 @@ def search_thurman_tarantino(df):
         ascending=True,
     )
     return result[["title", "runtime", "director", "cast"]].reset_index(drop=True)
+
+# Task 3.3 : franchise vs standalone comparison
+
+def franchise_vs_standalone(df):
+    """
+    Compare franchise movies (belongs_to_collection is set) against
+    standalone movies across the KPIs the brief lists.
+
+    Returns a 2-row table indexed by 'Franchise' / 'Standalone'.
+    """
+    data = add_metrics(df)
+    data["is_franchise"] = data["belongs_to_collection"].notna() # Rows are flagged as True if they belong to a collection, and False if they do not.
+
+    summary = data.groupby("is_franchise").agg(
+        mean_revenue=("revenue_musd", "mean"),
+        median_roi=("roi", "median"),
+        mean_budget=("budget_musd", "mean"),
+        mean_popularity=("popularity", "mean"),
+        mean_rating=("vote_average", "mean"),
+
+        #  The dataset is split into two groups to calculate the metrics for each group.
+    )
+
+    # rename the True/False index into readable labels
+    summary.index = summary.index.map({True: "Franchise", False: "Standalone"})
+    return summary
+
