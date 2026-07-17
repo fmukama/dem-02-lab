@@ -77,3 +77,56 @@ def rank_movies(df, by, ascending=False, n=5,
         cols += [c for c in extra_cols if c not in cols]
     return ranked[cols].reset_index(drop=True)
 
+
+# --- Task 3.1 wrappers: the 10 required "best / worst" rankings
+def highest_revenue(df, n=5):
+    """Top movies by revenue."""
+    return rank_movies(df, "revenue_musd", n=n)
+
+
+def highest_budget(df, n=5):
+    """Top movies by budget."""
+    return rank_movies(df, "budget_musd", n=n)
+
+
+def highest_profit(df, n=5):
+    """Top movies by profit (revenue - budget)."""
+    return rank_movies(df, "profit_musd", n=n, extra_cols=["revenue_musd", "budget_musd"])
+
+
+def lowest_profit(df, n=5):
+    """Biggest money-losers (lowest profit)."""
+    return rank_movies(df, "profit_musd", ascending=True, n=n,
+                       extra_cols=["revenue_musd", "budget_musd"])
+
+
+def highest_roi(df, n=5):
+    """Best ROI -- only movies with budget >= 10M (avoids tiny-budget noise)."""
+    return rank_movies(df, "roi", n=n, min_budget=10,
+                       extra_cols=["revenue_musd", "budget_musd"])
+
+
+def lowest_roi(df, n=5):
+    """Worst ROI -- only movies with budget >= 10M."""
+    return rank_movies(df, "roi", ascending=True, n=n, min_budget=10,
+                       extra_cols=["revenue_musd", "budget_musd"])
+
+
+def most_voted(df, n=5):
+    """Movies with the most votes."""
+    return rank_movies(df, "vote_count", n=n)
+
+
+def highest_rated(df, n=5):
+    """Highest rated -- only movies with at least 10 votes."""
+    return rank_movies(df, "vote_average", n=n, min_votes=10, extra_cols=["vote_count"])
+
+
+def lowest_rated(df, n=5):
+    """Lowest rated -- only movies with at least 10 votes."""
+    return rank_movies(df, "vote_average", ascending=True, n=n, min_votes=10, extra_cols=["vote_count"])
+
+
+def most_popular(df, n=5):
+    """Most popular movies (TMDB popularity score)."""
+    return rank_movies(df, "popularity", n=n)
