@@ -215,7 +215,7 @@ There is a weak positive association between rating and popularity. The two most
 
 ### 4.4 Yearly Box-Office Performance
 
-Total revenue peaks sharply in 2015 (~$6.7B, driven by *The Force Awakens*, *Jurassic World*, *Furious 7* and *Age of Ultron*), with 2018 and 2019 close behind (~$5.9B each). The pattern reflects how many of the sampled blockbusters clustered in the second half of the 2010s.
+Total revenue peaks sharply in 2015 (approx. $6.7B, driven by *The Force Awakens*, *Jurassic World*, *Furious 7* and *Age of Ultron*), with 2018 and 2019 close behind (approx. $5.9B each). The pattern reflects how many of the sampled blockbusters clustered in the second half of the 2010s.
 
 ![Total revenue by release year (millions USD)](images/figure-4-revenue-by-year.png)
 
