@@ -85,3 +85,21 @@ def yearly_box_office(df, ax=None):
     ax.set_ylabel("Total Revenue (million USD)")
     ax.set_title("Yearly Box-Office Performance")
     return ax
+
+# 5) Franchise vs Standalone success
+
+def franchise_vs_standalone_plot(df, ax=None):
+    """
+    Grouped bar chart comparing mean revenue and mean budget for franchise
+    vs standalone movies (uses analysis.franchise_vs_standalone).
+    """
+    summary = analysis.franchise_vs_standalone(df)
+
+    ax = _new_ax(ax, (8, 6))
+    summary[["mean_revenue", "mean_budget"]].plot(kind="bar", ax=ax)
+    ax.set_ylabel("Million USD")
+    ax.set_xlabel("")
+    ax.set_title("Franchise vs Standalone: Mean Revenue & Budget")
+    ax.tick_params(axis="x", rotation=0)
+    ax.legend(["Mean Revenue", "Mean Budget"])
+    return ax
