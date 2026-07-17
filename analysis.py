@@ -1,0 +1,79 @@
+"""
+analysis.py
+===========
+STEP 3: KPIs, rankings, searches and group analysis.
+
+Contents
+--------
+1. add_metrics(df)-> adds derived columns: profit_musd, roi
+2. rank_movies(...)-> the required User-Defined Function (UDF) that powers every "best / worst" ranking
+3. thin wrappers-> highest_revenue, highest_roi, ... (10 KPIs)
+4. search functions-> the two required search queries
+5. group analysis-> franchise vs standalone, top franchises, top directors
+
+Money columns are already in millions of USD.
+"""
+
+# Derived metrics used across the rankings
+
+def add_metrics(df):
+    """
+    Add the two derived KPI columns the rankings need:
+        profit_musd = revenue_musd - budget_musd
+        roi         = revenue_musd / budget_musd   (Return On Investment)
+    ROI is left as NaN when budget is missing (can't divide by NaN/0).
+    """
+    df = df.copy()
+    df["profit_musd"] = df["revenue_musd"] - df["budget_musd"]
+    df["roi"] = df["revenue_musd"] / df["budget_musd"]
+    return df
+
+
+# Task 3.1 : the ranking UDF (one function drives all 10 rankings)
+
+def rank_movies(df, by, ascending=False, n=5,
+                min_budget=None, min_votes=None, extra_cols=None):
+    """
+    Generic ranking helper -- the project's required UDF.
+
+    Parameters
+    ----------
+    by : str
+        Column to sort by. Can be a normal column ('revenue_musd',
+        'budget_musd', 'vote_count', 'vote_average', 'popularity') or one
+        of the derived metrics 'profit_musd' / 'roi'.
+    ascending : bool
+        False -> highest first (best). True -> lowest first (worst).
+    n : int
+        How many movies to return.
+    min_budget : float, optional
+        Keep only movies with budget_musd >= this (used for ROI rankings,
+        where tiny budgets create meaningless huge ratios).
+    min_votes : int, optional
+        Keep only movies with vote_count >= this (used for rating rankings).
+    extra_cols : list of str, optional
+        Extra columns to show next to the ranking metric.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A tidy table: title + the ranking metric (+ any extra columns).
+    """
+    data = add_metrics(df)
+
+    # optional quality filters
+    if min_budget is not None:
+        data = data[data["budget_musd"] >= min_budget]
+    if min_votes is not None:
+        data = data[data["vote_count"] >= min_votes]
+
+    # only rank rows where the sort column actually has a value
+    data = data.dropna(subset=[by])
+
+    ranked = data.sort_values(by=by, ascending=ascending).head(n)
+
+    cols = ["title", by]
+    if extra_cols:
+        cols += [c for c in extra_cols if c not in cols]
+    return ranked[cols].reset_index(drop=True)
+
