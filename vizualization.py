@@ -38,3 +38,23 @@ def revenue_vs_budget(df, ax=None):
     ax.set_title("Revenue vs Budget")
     ax.legend()
     return ax
+
+# 2) ROI distribution by genre
+
+def roi_by_genre(df, ax=None):
+    """
+    Median ROI per genre. Because a movie can have several genres (joined by
+    '|'), we split and explode so each genre is counted separately.
+    """
+    data = analysis.add_metrics(df).dropna(subset=["genres", "roi"]).copy()
+    data["genres"] = data["genres"].str.split("|")
+    exploded = data.explode("genres")
+
+    median_roi = exploded.groupby("genres")["roi"].median().sort_values()
+
+    ax = _new_ax(ax, (9, 6))
+    median_roi.plot(kind="barh", ax=ax, color="teal")
+    ax.set_xlabel("Median ROI (revenue / budget)")
+    ax.set_ylabel("Genre")
+    ax.set_title("ROI Distribution by Genre (median)")
+    return ax
