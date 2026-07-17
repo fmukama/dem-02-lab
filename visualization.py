@@ -30,10 +30,10 @@ def revenue_vs_budget(df, ax=None):
     ax.scatter(df["budget_musd"], df["revenue_musd"], alpha=0.7, edgecolor="k")
 
     # break-even line: revenue == budget
-    # top = max(df["budget_musd"].max(), df["revenue_musd"].max())
-    # ax.plot([0, top], [0, top], "r--", label="Break-even (revenue = budget)")
-    ax.set_xlim(0,400)
-    ax.set_ylim(1000,3500)
+    top = max(df["budget_musd"].max(), df["revenue_musd"].max())
+    ax.plot([0, top], [0, top], "r--", label="Break-even (revenue = budget)")
+    # ax.set_xlim(0,400)
+    # ax.set_ylim(1000,3500)
 
     ax.set_xlabel("Budget (million USD)")
     ax.set_ylabel("Revenue (million USD)")
