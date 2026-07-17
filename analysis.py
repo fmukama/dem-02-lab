@@ -130,3 +130,61 @@ def lowest_rated(df, n=5):
 def most_popular(df, n=5):
     """Most popular movies (TMDB popularity score)."""
     return rank_movies(df, "popularity", n=n)
+
+
+# Task 3.2 : advanced search queries
+
+def search_movies(df, genres=None, cast=None, director=None,                sort_by="vote_average", ascending=False):
+    """
+    Flexible search over the cleaned dataset.
+
+    genres / cast / director are matched as case-insensitive substrings, so
+    'Bruce Willis' matches inside the pipe-joined cast string. `genres` may
+    be a single string or a list of strings (ALL must be present).
+
+    Returns the matching rows sorted by `sort_by`.
+    """
+    data = df.copy()
+
+    if genres:
+        # allow a single genre string or a list of genres (AND logic)
+        genre_list = [genres] if isinstance(genres, str) else genres
+        for g in genre_list:
+            # na: # Keeps the filter from breaking if missing values exist
+            data = data[data["genres"].str.contains(g, case=False, na=False)]
+    if cast:
+        data = data[data["cast"].str.contains(cast, case=False, na=False)]
+    if director:
+        data = data[data["director"].str.contains(director, case=False, na=False)]
+
+    return data.sort_values(by=sort_by, ascending=ascending)
+
+
+def search_scifi_action_bruce_willis(df):
+    """
+    Search 1: best-rated Science-Fiction Action movies starring Bruce Willis,
+    sorted by rating (highest to lowest).
+    """
+    result = search_movies(
+        df,
+        genres=["Science Fiction", "Action"],
+        cast="Bruce Willis",
+        sort_by="vote_average",
+        ascending=False,
+    )
+    return result[["title", "vote_average", "genres", "cast"]].reset_index(drop=True)
+
+
+def search_thurman_tarantino(df):
+    """
+    Search 2: movies starring Uma Thurman directed by Quentin Tarantino,
+    sorted by runtime (shortest to longest).
+    """
+    result = search_movies(
+        df,
+        cast="Uma Thurman",
+        director="Quentin Tarantino",
+        sort_by="runtime",
+        ascending=True,
+    )
+    return result[["title", "runtime", "director", "cast"]].reset_index(drop=True)
