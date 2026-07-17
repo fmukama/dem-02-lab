@@ -91,3 +91,36 @@ def _crew_size(credits):
     obj = _as_object(credits)
     return len(obj.get("crew", [])) if isinstance(obj, dict) else 0
 
+
+# Task 2.1 - 2.3 : drop junk columns and flatten the JSON-like columns
+DROP_COLUMNS = ["adult", "imdb_id", "original_title", "video", "homepage"]
+
+
+def flatten_columns(df):
+    """
+    Drop irrelevant columns and convert every nested field into a clean
+    text column: genres, collection, languages, countries, companies,
+    cast, director, plus cast_size / crew_size.
+    """
+    df = df.copy()
+
+    # 1) drop columns we will never use in the analysis
+    df = df.drop(columns=[c for c in DROP_COLUMNS if c in df.columns])
+
+    # 2) flatten the list/dict columns into pipe-separated strings
+    df["genres"] = df["genres"].apply(_names)
+    df["belongs_to_collection"] = df["belongs_to_collection"].apply(_collection_name)
+    df["spoken_languages"] = df["spoken_languages"].apply(
+        lambda v: _names(v, key="english_name")  # readable English name
+    )
+    df["production_countries"] = df["production_countries"].apply(_names)
+    df["production_companies"] = df["production_companies"].apply(_names)
+
+    # 3) pull cast & crew details out of the nested `credits` field
+    df["cast"] = df["credits"].apply(_cast_names)
+    df["cast_size"] = df["credits"].apply(_cast_size)
+    df["director"] = df["credits"].apply(_director)
+    df["crew_size"] = df["credits"].apply(_crew_size)
+    df = df.drop(columns=["credits"])  # no longer needed once flattened
+
+    return df
