@@ -215,3 +215,56 @@ def franchise_vs_standalone(df):
     summary.index = summary.index.map({True: "Franchise", False: "Standalone"})
     return summary
 
+# Task 3.4 : most successful franchises
+
+def franchise_summary(df, min_movies=2):
+    """
+    Aggregate KPIs per franchise (belongs_to_collection).
+
+    Parameters
+    ----------
+    min_movies : int
+        Only keep franchises with at least this many movies in the dataset
+        (a "franchise" of one movie is not really a franchise).
+
+    Returns a table sorted by total revenue (descending).
+    """
+    data = add_metrics(df).dropna(subset=["belongs_to_collection"])
+
+    summary = data.groupby("belongs_to_collection").agg(
+        num_movies=("title", "count"),
+        total_budget=("budget_musd", "sum"),
+        mean_budget=("budget_musd", "mean"),
+        total_revenue=("revenue_musd", "sum"),
+        mean_revenue=("revenue_musd", "mean"),
+        mean_rating=("vote_average", "mean"),
+    )
+    summary = summary[summary["num_movies"] >= min_movies]
+    return summary.sort_values("total_revenue", ascending=False)
+
+
+
+# Task 3.5 : most successful directors
+
+def director_summary(df):
+    """
+    Aggregate KPIs per director.
+
+    A movie can list more than one director (joined by '|'), so we split and
+    'explode' the column first, giving each director their own rows.
+
+    Returns a table sorted by total revenue (descending).
+    """
+    data = add_metrics(df).dropna(subset=["director"]).copy()
+
+    # turn "A|B" into ["A", "B"], then one row per director
+    data["director"] = data["director"].str.split("|")
+    data = data.explode("director")
+
+    summary = data.groupby("director").agg(
+        num_movies=("title", "count"),
+        total_revenue=("revenue_musd", "sum"),
+        mean_rating=("vote_average", "mean"),
+    )
+    return summary.sort_values("total_revenue", ascending=False)
+
