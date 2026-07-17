@@ -58,3 +58,15 @@ def roi_by_genre(df, ax=None):
     ax.set_ylabel("Genre")
     ax.set_title("ROI Distribution by Genre (median)")
     return ax
+
+# 3) Popularity vs Rating
+
+def popularity_vs_rating(df, ax=None):
+    """Scatter of popularity against average rating."""
+    ax = _new_ax(ax, (8, 6))
+    ax.scatter(df["vote_average"], df["popularity"], alpha=0.7,
+               color="darkorange", edgecolor="k")
+    ax.set_xlabel("Average Rating")
+    ax.set_ylabel("Popularity")
+    ax.set_title("Popularity vs Rating")
+    return ax
