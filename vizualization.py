@@ -70,3 +70,18 @@ def popularity_vs_rating(df, ax=None):
     ax.set_ylabel("Popularity")
     ax.set_title("Popularity vs Rating")
     return ax
+
+# 4) Yearly box-office performance
+
+def yearly_box_office(df, ax=None):
+    """Total revenue per release year (bar chart)."""
+    data = df.dropna(subset=["release_date", "revenue_musd"]).copy()
+    data["year"] = data["release_date"].dt.year
+    yearly = data.groupby("year")["revenue_musd"].sum()
+
+    ax = _new_ax(ax, (10, 6))
+    yearly.plot(kind="bar", ax=ax, color="steelblue")
+    ax.set_xlabel("Release Year")
+    ax.set_ylabel("Total Revenue (million USD)")
+    ax.set_title("Yearly Box-Office Performance")
+    return ax
