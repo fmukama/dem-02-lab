@@ -124,3 +124,97 @@ def flatten_columns(df):
     df = df.drop(columns=["credits"])  # no longer needed once flattened
 
     return df
+
+
+# Task 2.5 - 2.6 : data types, unrealistic values, unit conversion
+
+def fix_dtypes_and_values(df):
+    """
+    Convert data types, replace impossible values with NaN and express
+    money in millions of USD (easier to read than raw dollars).
+    """
+    df = df.copy()
+
+    # numeric conversions -- invalid text becomes NaN instead of crashing
+    for col in ["budget", "id", "popularity"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # release_date -> a real datetime so we can group by year later
+    df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce")
+
+    # A budget / revenue / runtime of 0 is not real data -> mark as missing
+    for col in ["budget", "revenue", "runtime"]:
+        if col in df.columns:
+            df[col] = df[col].replace(0, np.nan)
+
+    # Convert money to millions of USD (budget_musd, revenue_musd)
+    df["budget_musd"] = df["budget"] / 1_000_000
+    df["revenue_musd"] = df["revenue"] / 1_000_000
+
+    # A movie with 0 votes has a meaningless 0.0 average rating -> NaN
+    df.loc[df["vote_count"] == 0, "vote_average"] = np.nan
+
+    # Replace known placeholder text with NaN
+    placeholders = ["No Data", "No overview found.", ""]
+    for col in ["overview", "tagline"]:
+        if col in df.columns:
+            df[col] = df[col].replace(placeholders, np.nan)
+
+    return df
+
+
+# Task 2.7 - 2.11 : row-level cleaning, filtering, reorder, reset index
+
+# The exact final column order requested in the brief.
+FINAL_COLUMN_ORDER = [
+    "id", "title", "tagline", "release_date", "genres", "belongs_to_collection",
+    "original_language", "budget_musd", "revenue_musd", "production_companies",
+    "production_countries", "vote_count", "vote_average", "popularity", "runtime",
+    "overview", "spoken_languages", "poster_path", "cast", "cast_size",
+    "director", "crew_size",
+]
+
+
+def clean_rows(df):
+    """
+    Remove duplicates and bad rows, keep only well-populated released
+    movies, then reorder to the final schema and reset the index.
+    """
+    df = df.copy()
+
+    # Task 2.7 -- drop duplicate movies and any row with no id or title.
+    # NOTE: we deduplicate on "id" (the unique movie key) instead of the whole
+    # row. A plain df.drop_duplicates() tries to hash every column, but some
+    # raw columns (e.g. TMDB's newer 'origin_country') still hold Python lists
+    # at this point, and lists are unhashable -> "unhashable type: 'list'".
+    df = df.dropna(subset=["id", "title"])
+    df = df.drop_duplicates(subset=["id"])
+
+    # Task 2.8 -- keep only rows that have at least 10 non-NaN values
+    df = df.dropna(thresh=10)
+
+    # Task 2.9 -- keep only 'Released' movies, then drop the status column
+    if "status" in df.columns:
+        df = df[df["status"] == "Released"].copy()
+        df = df.drop(columns=["status"])
+
+    # Task 2.10 -- reorder to the exact layout the brief asks for
+    ordered = [c for c in FINAL_COLUMN_ORDER if c in df.columns]
+    df = df[ordered]
+
+    # Task 2.11 -- clean id type and reset the index
+    df["id"] = df["id"].astype("int64")
+    df = df.reset_index(drop=True)
+
+    return df
+
+
+# Public entry point -- run the whole cleaning pipeline in order
+
+def preprocess(df):
+    """Run flatten -> fix dtypes/values -> clean rows, and return the result."""
+    df = flatten_columns(df)
+    df = fix_dtypes_and_values(df)
+    df = clean_rows(df)
+    print(f"Clean dataset: {df.shape[0]} movies x {df.shape[1]} columns.")
+    return df
